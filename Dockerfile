@@ -1,7 +1,6 @@
 # Usage:
-# docker volume create pgdata
 # docker volume create gems
-# docker-compose up
+# docker-compose up -d
 # docker-compose exec web bundle exec rake db:create db:schema:load ffcrm:demo:load
 
 FROM ruby:2.7
@@ -16,10 +15,11 @@ WORKDIR $HOME
 
 ADD . $HOME
 RUN apt-get update && \
-	apt-get install -y imagemagick tzdata && \
+	apt-get install -y imagemagick tzdata sqlite3 && \
 	apt-get autoremove -y && \
-	cp config/database.postgres.docker.yml config/database.yml && \
+	cp config/database.sqlite.docker.yml config/database.yml && \
 	gem install bundler && \
+	gem update --system && \
 	bundle config set --local deployment 'true' && \
 	bundle install --deployment && \
 	bundle exec rails assets:precompile

@@ -13,7 +13,7 @@ when 'mysql'
 when 'postgres'
   gem 'pg'
 else
-  gem 'pg'
+  gem 'sqlite3', '~> 1.4.0'
 end
 
 # Removes a gem dependency
