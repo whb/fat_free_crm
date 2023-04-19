@@ -9,6 +9,20 @@ LABEL author="Steve Kenworthy"
 
 ENV HOME /home/app
 
+# ruby 镜像预设的这个环境变量干扰了后面的操作，将它重置为默认值
+ENV BUNDLE_APP_CONFIG=.bundle
+
+# apt 使用阿里云的源
+RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
+    echo "deb https://mirrors.aliyun.com/debian/ bullseye main non-free contrib" >/etc/apt/sources.list && \
+    echo "deb-src https://mirrors.aliyun.com/debian/ bullseye main non-free contrib" >>/etc/apt/sources.list && \
+    echo "deb https://mirrors.aliyun.com/debian-security/ bullseye-security main" >>/etc/apt/sources.list && \
+    echo "deb-src https://mirrors.aliyun.com/debian-security/ bullseye-security main" >>/etc/apt/sources.list && \
+    echo "deb https://mirrors.aliyun.com/debian/ bullseye-updates main non-free contrib" >>/etc/apt/sources.list && \
+    echo "deb-src https://mirrors.aliyun.com/debian/ bullseye-updates main non-free contrib" >>/etc/apt/sources.list && \
+    echo "deb https://mirrors.aliyun.com/debian/ bullseye-backports main non-free contrib" >>/etc/apt/sources.list && \
+    echo "deb-src https://mirrors.aliyun.com/debian/ bullseye-backports main non-free contrib" >>/etc/apt/sources.list
+
 RUN mkdir -p $HOME
 
 WORKDIR $HOME
@@ -16,8 +30,12 @@ WORKDIR $HOME
 ADD . $HOME
 RUN apt-get update && \
 	apt-get install -y imagemagick tzdata sqlite3 && \
-	apt-get autoremove -y && \
-	cp config/database.sqlite.docker.yml config/database.yml && \
+	apt-get autoremove -y 
+
+# 设置 gem 中国镜像，并安装bundler
+RUN cp config/database.sqlite.docker.yml config/database.yml && \
+    gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/ &&\
+    bundle config mirror.https://rubygems.org https://gems.ruby-china.com &&\
 	gem install bundler && \
 	gem update --system && \
 	bundle config set --local deployment 'true' && \
